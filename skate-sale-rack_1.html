@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SALE RACK — Skate Shop Deal Aggregator</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;700&family=Archivo:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1A1A1A;
+    --paper: #EDEAE0;
+    --cone: #FF5A1F;
+    --concrete: #8C8C86;
+    --stamp: #B33A3A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0);
+    background-size: 18px 18px;
+    color: var(--ink);
+    font-family: 'Archivo', sans-serif;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    padding: 3.5rem 1.5rem 2.5rem;
+    border-bottom: 4px solid var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--stamp);
+    font-weight: 700;
+    display: inline-block;
+    padding: 4px 10px;
+    border: 2px solid var(--stamp);
+    transform: rotate(-2deg);
+    margin-bottom: 1.2rem;
+  }
+  h1 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.6rem);
+    line-height: 0.95;
+    margin: 0 0 1rem;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+  }
+  h1 span { color: var(--cone); }
+  .sub {
+    font-size: 1.05rem;
+    color: #4a4a46;
+    max-width: 540px;
+    line-height: 1.5;
+    margin: 0 0 1.5rem;
+  }
+  .stat-row {
+    display: flex;
+    gap: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    flex-wrap: wrap;
+  }
+  .stat b {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+  .stat span {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--concrete);
+  }
+
+  /* ---------- FILTER BAR ---------- */
+  .filters {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.9rem 1.5rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .filters .max-wrap { max-width: 1100px; margin: 0 auto; width: 100%; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+  .filters label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #a8a89e;
+    margin-right: -2px;
+  }
+  select, .sort-btn {
+    background: var(--paper);
+    color: var(--ink);
+    border: none;
+    padding: 7px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .count-badge {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--cone);
+    font-weight: 700;
+  }
+
+  /* ---------- GRID ---------- */
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.2rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.6rem;
+  }
+
+  .card {
+    background: #fff;
+    border: 2px solid var(--ink);
+    position: relative;
+    padding: 0;
+    transition: transform 0.15s ease;
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card:hover .tag { transform: rotate(-8deg) scale(1.04); }
+
+  .thumb {
+    aspect-ratio: 4/3;
+    background: linear-gradient(135deg, #ddd8c8, #c9c3ae);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    color: rgba(0,0,0,0.28);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--ink);
+    overflow: hidden;
+  }
+
+  .tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--stamp);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 8px;
+    transform: rotate(6deg);
+    box-shadow: 1px 2px 0 rgba(0,0,0,0.3);
+    transition: transform 0.15s ease;
+    clip-path: polygon(0% 10%, 5% 0%, 95% 0%, 100% 15%, 97% 100%, 8% 95%);
+  }
+
+  .body { padding: 0.9rem 1rem 1.1rem; }
+  .shop {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cone);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .name {
+    font-weight: 900;
+    font-size: 15px;
+    line-height: 1.25;
+    margin-bottom: 8px;
+    min-height: 38px;
+  }
+  .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .now { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 17px; }
+  .was { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--concrete); text-decoration: line-through; }
+  .sizes { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--concrete); letter-spacing: 0.5px; }
+
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--concrete);
+  }
+
+  footer {
+    border-top: 4px solid var(--ink);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--concrete);
+    letter-spacing: 0.5px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .tag { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="kicker">Live snapshot · Aug 30, 2026</span>
+    <h1>Every skate shop<br>clearance rack, <span>one page.</span></h1>
+    <p class="sub">Real sale listings pulled from independent skate shop websites — no more checking a dozen tabs to find your size on clearance. Click any pair to buy direct from the shop.</p>
+    <div class="stat-row">
+      <div class="stat"><b id="stat-count">—</b><span>Deals live</span></div>
+      <div class="stat"><b id="stat-shops">—</b><span>Shops tracked</span></div>
+      <div class="stat"><b id="stat-avg">—</b><span>Avg. off</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="max-wrap">
+    <label>Shop</label>
+    <select id="shopFilter"><option value="all">All shops</option></select>
+    <label>Size</label>
+    <select id="sizeFilter"><option value="all">All sizes</option></select>
+    <label>Sort</label>
+    <select id="sortSelect">
+      <option value="discount">Biggest discount</option>
+      <option value="price-low">Price: low to high</option>
+      <option value="price-high">Price: high to low</option>
+      <option value="newest">Newest</option>
+    </select>
+    <span class="count-badge" id="countBadge"></span>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>SALE RACK — real listings from Blue Tile Lounge &amp; Goodnews Skateshop, pulled Aug 30, 2026. Prices/availability may have changed — click through to confirm before buying.</footer>
+
+<script>
+// ---- REAL DATA ----
+// Pulled live from each shop's public sale-footwear collection page
+// on Aug 30, 2026. In production, a scheduled backend job re-fetches
+// each shop's collection on a cadence (e.g. daily) and replaces this
+// array server-side — everything downstream (filters, sort, render)
+// already works off this exact shape, so no frontend changes needed.
+const REAL_DEALS = [
+  { id: 1, shop: "Blue Tile Lounge", model: "Converse Louie Lopez 2 Pro OX (Black/Black/Gum)", price: 79, original: 110, sizes: ["9"], url: "https://bluetilelounge.com/collections/sale-shoes/products/louie-lopez-2-pro-ox-black-black-gum" },
+  { id: 2, shop: "Blue Tile Lounge", model: "Converse Fastbreak Pro OX Jake Johnson (Beluga/Light Field)", price: 69, original: 135, sizes: ["8","8.5","9.5","10","10.5","11"], url: "https://bluetilelounge.com/collections/sale-shoes/products/fastbreak-pro-ox-beluga-light-field" },
+  { id: 3, shop: "Blue Tile Lounge", model: "Converse AS-1 Pro OX (Black/White/Gum)", price: 49, original: 99, sizes: ["10"], url: "https://bluetilelounge.com/collections/sale-shoes/products/as-1-pro-ox-black-white-gum" },
+  { id: 4, shop: "Blue Tile Lounge", model: "Converse AS-1 Pro OX (White/Black/White)", price: 49, original: 99, sizes: ["8","8.5","9","10.5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/as-1-pro-ox-white-black-white" },
+  { id: 5, shop: "Blue Tile Lounge", model: "adidas Gazelle ADV (Wonder White/Preloved Blue/Gum)", price: 49, original: 140, sizes: ["8"], url: "https://bluetilelounge.com/collections/sale-shoes/products/gazelle-adv-wonder-white-preloved-blue-gum" },
+  { id: 6, shop: "Blue Tile Lounge", model: "Asics Leggerezza FB (White/Black)", price: 99, original: 140, sizes: ["9","10","10.5","12"], url: "https://bluetilelounge.com/collections/sale-shoes/products/leggerezza-fb-white-black" },
+  { id: 7, shop: "Blue Tile Lounge", model: "Last Resort AB VM001 Lo NICK (Patriot Blue)", price: 99, original: 130, sizes: ["8"], url: "https://bluetilelounge.com/collections/sale-shoes/products/vm001-lo-nick-patriot-blue" },
+  { id: 8, shop: "Blue Tile Lounge", model: "Converse CL98 OX (Black/White)", price: 49, original: 99, sizes: ["8","9","10.5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/cl98-ox-black-white" },
+  { id: 9, shop: "Blue Tile Lounge", model: "adidas Tyshawn 2 (Black/White/Gum)", price: 49, original: 130, sizes: ["9.5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/tyshawn-2-black-white-gum" },
+  { id: 10, shop: "Blue Tile Lounge", model: "New Balance Numeric Foy 306 (Black/Brown)", price: 49, original: 120, sizes: ["8"], url: "https://bluetilelounge.com/collections/sale-shoes/products/numeric-foy-306-black-brown" },
+  { id: 11, shop: "Blue Tile Lounge", model: "Asics Japan Pro MT Mid (White/Black)", price: 99, original: 155, sizes: ["10"], url: "https://bluetilelounge.com/collections/sale-shoes/products/japan-pro-mt-mid-white-black" },
+  { id: 12, shop: "Blue Tile Lounge", model: "Last Resort AB CM002 LO (Olive Grey/Black)", price: 79, original: 139, sizes: ["8","9"], url: "https://bluetilelounge.com/collections/sale-shoes/products/cm002-lo-olive-grey-black" },
+  { id: 13, shop: "Blue Tile Lounge", model: "New Balance Numeric 480 (Red/Red)", price: 79, original: 130, sizes: ["9"], url: "https://bluetilelounge.com/collections/sale-shoes/products/numeric-480-red-red" },
+  { id: 14, shop: "Blue Tile Lounge", model: "Last Resort AB CM001 Suede (White/White)", price: 99, original: 140, sizes: ["8.5","9"], url: "https://bluetilelounge.com/collections/sale-shoes/products/last-resort-ab-cm001-suede-white-white" },
+  { id: 15, shop: "Blue Tile Lounge", model: "Last Resort AB VM001-LO Canvas (Kelly Green/Klein Blue)", price: 59, original: 119, sizes: ["8"], url: "https://bluetilelounge.com/collections/sale-shoes/products/last-resort-vm001-lo-canvas-kelly-green-klein-blue" },
+  { id: 16, shop: "Blue Tile Lounge", model: "Last Resort AB VM001 HI Canvas (Black/Black)", price: 29, original: 119, sizes: ["4.5","5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/last-resort-vm001-hi-canvas-3-x-black-black" },
+  { id: 17, shop: "Blue Tile Lounge", model: "Last Resort AB VM001 Hi Suede (Black/Black)", price: 69, original: 129, sizes: ["6.5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/last-resort-ab-shoes-vm001-suede-hi-black-black-1" },
+  { id: 18, shop: "Blue Tile Lounge", model: "Last Resort AB VM003 LO (Black/White/Black)", price: 59, original: 115, sizes: ["6"], url: "https://bluetilelounge.com/collections/sale-shoes/products/vm003-lo-black-white-black" },
+  { id: 19, shop: "Blue Tile Lounge", model: "Last Resort AB VM003 LO Cord (Dark Brown)", price: 59, original: 125, sizes: ["4.5","5.5","6.5","8"], url: "https://bluetilelounge.com/collections/sale-shoes/products/vm003-lo-cord" },
+  { id: 20, shop: "Blue Tile Lounge", model: "Last Resort AB VM003 HI Cord (Dark Brown/White)", price: 49, original: 125, sizes: ["5.5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/vm003-hi-cord-dark-brown-white" },
+  { id: 21, shop: "Blue Tile Lounge", model: "Last Resort AB VM004 Milic (Tuxedo Black)", price: 65, original: 80, sizes: ["11"], url: "https://bluetilelounge.com/collections/sale-shoes/products/vm004-milic-tuxedo-black" },
+  { id: 22, shop: "Blue Tile Lounge", model: "Last Resort AB VM004 Milic LO (Olive Cream/Black)", price: 49.5, original: 125, sizes: ["5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/new-last-resort-vm004-milic-lo-olive-cream-black" },
+  { id: 23, shop: "Blue Tile Lounge", model: "Last Resort AB VM004 Milic LO (Black Graphite/White)", price: 59, original: 80, sizes: ["4.5","6.5"], url: "https://bluetilelounge.com/collections/sale-shoes/products/new-last-resort-vm004-milic-lo-black-graphite-white" },
+  { id: 24, shop: "Blue Tile Lounge", model: "Last Resort AB CM002 MID (Black/White)", price: 79, original: 145, sizes: ["8","9"], url: "https://bluetilelounge.com/collections/sale-shoes/products/cm002-mid-black-white" },
+  { id: 25, shop: "Goodnews Skateshop", model: "Nike SB Air Max 95 Club 58 SB FC (Sail/Black/Laser Orange)", price: 189.99, original: 235, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/nike-sb-air-max-95-world-cup-pack-in-sail-black-laser-orange", image: "https://goodnewsskateshop.com/cdn/shop/files/nike-sb-air-max-95-world-cup-pack-in-sailblack-laser-orange-1199235.webp?v=1782536590&width=600" },
+  { id: 26, shop: "Goodnews Skateshop", model: "Nike SB PS8 (Black/White/Anthracite/Gum Yellow)", price: 129.99, original: 160, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/nike-sb-ps8-in-black-white-anthracite-gum-yellow", image: "https://goodnewsskateshop.com/cdn/shop/files/nike-sb-ps8-in-blackwhite-anthracite-gum-yellow-1321167.webp?v=1781707997&width=600" },
+  { id: 27, shop: "Goodnews Skateshop", model: "ASICS X Late Nite Stars Leggerezza FB (Oyster Grey/Black)", price: 119.99, original: 139.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/asics-x-late-nite-stars-leggerezza-fb-in-oyster-grey-black", image: "https://goodnewsskateshop.com/cdn/shop/files/1_000000018673.avif?v=1779224195&width=600" },
+  { id: 28, shop: "Goodnews Skateshop", model: "New Balance Numeric Andrew Reynolds 933 (White/Gum)", price: 119.99, original: 169.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/new-balance-numeric-andrew-reynolds-933-in-white-gum", image: "https://goodnewsskateshop.com/cdn/shop/files/new-balance-numeric-andrew-reynolds-933-in-whitegum-6013555.jpg?v=1775246470&width=600" },
+  { id: 29, shop: "Goodnews Skateshop", model: "New Balance Numeric Andrew Reynolds 933 (Black/Eclipse/White)", price: 119.99, original: 169.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/new-balance-numeric-andrew-reynolds-933-in-black-eclipse-white", image: "https://goodnewsskateshop.com/cdn/shop/files/new-balance-numeric-andrew-reynolds-933-in-blackeclipsewhite-2420249.png?v=1769748563&width=600" },
+  { id: 30, shop: "Goodnews Skateshop", model: "Nike SB Zoom Tennis Classic Club 58 SB FC (Hyper Pink/Black)", price: 99.99, original: 135, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/nike-sb-zoom-tennis-classic-world-cup-pack-in-hyper-pink-black", image: "https://goodnewsskateshop.com/cdn/shop/files/nike-sb-zoom-tennis-classic-world-cup-pack-in-hyper-pinkblack-black-7867163.webp?v=1782536590&width=600" },
+  { id: 31, shop: "Goodnews Skateshop", model: "ASICS Leggerezza FB (White/Black)", price: 99.99, original: 129.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/asics-leggerezza-fb-in-white-black", image: "https://goodnewsskateshop.com/cdn/shop/files/asics-leggerezza-fb-in-whiteblack-2957703.jpg?v=1761765093&width=600" },
+  { id: 32, shop: "Goodnews Skateshop", model: "New Balance X Grand Collection Numeric 770 (Black/Black)", price: 94.99, original: 169.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/new-balance-x-grand-collection-numeric-770-in-black-black", image: "https://goodnewsskateshop.com/cdn/shop/files/new-balance-x-grand-collection-numeric-770-in-blackblack-7783488.jpg?v=1763782684&width=600" },
+  { id: 33, shop: "Goodnews Skateshop", model: "ASICS Japan Pro MT (Black/White)", price: 89.99, original: 159.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/asics-japan-pro-mt-in-black-white", image: "https://goodnewsskateshop.com/cdn/shop/files/asics-japan-pro-mt-in-blackwhite-968020.jpg?v=1739407810&width=600" },
+  { id: 34, shop: "Goodnews Skateshop", model: "New Balance Numeric Tiago Lemos 1010 (Black/Black)", price: 89.99, original: 144.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/new-balance-numeric-tiago-lemos-1010-in-black-black", image: "https://goodnewsskateshop.com/cdn/shop/files/new-balance-numeric-tiago-lemos-1010-in-blackblack-6740457.png?v=1769748564&width=600" },
+  { id: 35, shop: "Goodnews Skateshop", model: "New Balance Numeric 442 (Blue/White)", price: 79.99, original: 159.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/new-balance-numeric-442-in-blue", image: "https://goodnewsskateshop.com/cdn/shop/files/new-balance-numeric-442-in-bluewhite-8789309.jpg?v=1783199652&width=600" },
+  { id: 36, shop: "Goodnews Skateshop", model: "ASICS Leggerezza FB (Raw Indigo/White)", price: 79.99, original: 129.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/asics-leggerezza-fb-in-raw-indigo-white", image: "https://goodnewsskateshop.com/cdn/shop/files/IMG-3689.png?v=1773335068&width=600" },
+  { id: 37, shop: "Goodnews Skateshop", model: "Vans Skate Era (Checkerboard Black/White)", price: 74.99, original: 89.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/vans-skate-era-in-checkerboard-black-white", image: "https://goodnewsskateshop.com/cdn/shop/files/vans-skate-era-in-checkerboard-blackwhite-9540509.png?v=1783448108&width=600" },
+  { id: 38, shop: "Goodnews Skateshop", model: "New Balance Numeric 440 V2 (Black/Sea Salt)", price: 69.99, original: 114.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/new-balance-numeric-440-v2-in-black-sea-salt", image: "https://goodnewsskateshop.com/cdn/shop/files/new-balance-numeric-440-v2-in-blacksea-salt-5942371.jpg?v=1775246470&width=600" },
+  { id: 39, shop: "Goodnews Skateshop", model: "Vans Skate Authentic Mid (Black/White)", price: 69.99, original: 94.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/vans-skate-authentic-mid-in-black-white", image: "https://goodnewsskateshop.com/cdn/shop/files/vans-skate-authentic-mid-in-blackwhite-1384309.webp?v=1771682045&width=600" },
+  { id: 40, shop: "Goodnews Skateshop", model: "Vans Skate Old Skool (Tartan Green/Blue)", price: 69.99, original: 94.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/vans-skate-old-skool-in-tartan-green-blue", image: "https://goodnewsskateshop.com/cdn/shop/files/vans-skate-old-skool-in-tartan-greenblue-541583.png?v=1742556448&width=600" },
+  { id: 41, shop: "Goodnews Skateshop", model: "Converse CONS CTAS Pro Hi (White/Gold/Egret)", price: 69.99, original: 99.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/converse-cons-ctas-pro-hi-in-white-gold-egret", image: "https://goodnewsskateshop.com/cdn/shop/files/converse-cons-ctas-pro-hi-in-whitegoldegret-1636368.png?v=1758367173&width=600" },
+  { id: 42, shop: "Goodnews Skateshop", model: "Vans SK8-Hi (Light Grey/White)", price: 64.99, original: 115, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/vans-sk8-hi-in-light-grey-white", image: "https://goodnewsskateshop.com/cdn/shop/products/vans-sk8-hi-in-light-grey-white-502599.jpg?v=1700943676&width=600" },
+  { id: 43, shop: "Goodnews Skateshop", model: "Vans Skate Era (Marshmallow White)", price: 64.95, original: 89.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/vans-skate-era-in-suede-canvas-marshmallow", image: "https://goodnewsskateshop.com/cdn/shop/files/vans-skate-era-in-marshmallow-white-8445436.png?v=1785436630&width=600" },
+  { id: 44, shop: "Goodnews Skateshop", model: "Vans Skate Authentic Mid (Pewter)", price: 59.99, original: 89.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/vans-skate-authentic-mid-in-pewter", image: "https://goodnewsskateshop.com/cdn/shop/files/vans-skate-authentic-mid-in-pewter-5860307.jpg?v=1763782489&width=600" },
+  { id: 45, shop: "Goodnews Skateshop", model: "Vans Skate Slip-On (Navy)", price: 49.99, original: 79.99, sizes: ["Check size run"], url: "https://goodnewsskateshop.com/products/vans-skate-slip-on-in-navy", image: "https://goodnewsskateshop.com/cdn/shop/files/vans-skate-slip-on-in-navy-3386373.jpg?v=1752816160&width=600" },
+];
+
+function fetchDeals() {
+  // Production version: replace with fetch('/api/deals') hitting a backend
+  // that polls each shop's sale collection on a schedule (Shopify shops
+  // expose this cleanly) and normalizes it into this same shape.
+  return Promise.resolve(REAL_DEALS);
+}
+
+let allDeals = [];
+
+function pct(deal) { return Math.round((1 - deal.price / deal.original) * 100); }
+
+function populateFilters(deals) {
+  const shopSel = document.getElementById('shopFilter');
+  const sizeSel = document.getElementById('sizeFilter');
+  const shops = [...new Set(deals.map(d => d.shop))].sort();
+  const sizes = [...new Set(deals.flatMap(d => d.sizes))].filter(s => s !== "Check size run").sort((a,b) => parseFloat(a) - parseFloat(b));
+  shops.forEach(s => shopSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
+  sizes.forEach(s => sizeSel.insertAdjacentHTML('beforeend', `<option value="${s}">Size ${s}</option>`));
+}
+
+function updateStats(deals) {
+  document.getElementById('stat-count').textContent = deals.length;
+  document.getElementById('stat-shops').textContent = new Set(deals.map(d => d.shop)).size;
+  const avg = Math.round(deals.reduce((sum, d) => sum + pct(d), 0) / deals.length);
+  document.getElementById('stat-avg').textContent = avg + '%';
+}
+
+function render() {
+  const shop = document.getElementById('shopFilter').value;
+  const size = document.getElementById('sizeFilter').value;
+  const sort = document.getElementById('sortSelect').value;
+
+  let list = allDeals.filter(d =>
+    (shop === 'all' || d.shop === shop) &&
+    (size === 'all' || d.sizes.includes(size))
+  );
+
+  if (sort === 'discount') list.sort((a,b) => pct(b) - pct(a));
+  if (sort === 'price-low') list.sort((a,b) => a.price - b.price);
+  if (sort === 'price-high') list.sort((a,b) => b.price - a.price);
+  if (sort === 'newest') list.sort((a,b) => a.added - b.added);
+
+  const grid = document.getElementById('grid');
+  document.getElementById('countBadge').textContent = list.length + ' showing';
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty">Nothing on the rack for that size right now — check back tomorrow, or widen your filters.</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(d => `
+    <a class="card" href="${d.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:inherit; display:block;">
+      <div class="thumb">${d.image ? `<img src="${d.image}" alt="${d.model}" style="width:100%; height:100%; object-fit:cover;">` : d.model.split(' ').slice(0,2).join(' ')}
+        <div class="tag">-${pct(d)}%</div>
+      </div>
+      <div class="body">
+        <div class="shop">${d.shop}</div>
+        <div class="name">${d.model}</div>
+        <div class="price-row">
+          <span class="now">$${d.price.toFixed(2)}</span>
+          <span class="was">$${d.original.toFixed(2)}</span>
+        </div>
+        <div class="sizes">SIZES · ${d.sizes.join(', ')}</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+fetchDeals().then(deals => {
+  allDeals = deals;
+  populateFilters(deals);
+  updateStats(deals);
+  render();
+});
+
+document.getElementById('shopFilter').addEventListener('change', render);
+document.getElementById('sizeFilter').addEventListener('change', render);
+document.getElementById('sortSelect').addEventListener('change', render);
+</script>
+
+</body>
+</html>
